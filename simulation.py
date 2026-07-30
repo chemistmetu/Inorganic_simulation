@@ -412,8 +412,8 @@ def get_quantum_engine():
 engine = get_quantum_engine()
 minimizer = AbInitioMinimizer(engine)
 
-st.title("Semi-Emprical Coordination Complex Simulation")
-st.markdown("Matrix mechanics and crystal field theory-based semi-emprical geometry optimization tool.")
+st.title("Semi-Empirical Coordination Complex Simulation")
+st.markdown("Matrix mechanics and crystal field theory-based semi-empirical geometry optimization tool.")
 
 def unicode_metal_format(m):
     return m.replace("3+", "³⁺").replace("2+", "²⁺")
@@ -458,7 +458,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
         winner = min(valid_results, key=lambda k: valid_results[k]['total_energy'])
         win_data = thermo_results[winner]
 
-        # Delta ve Dq hesaplamalarını tüm sekmelerde kullanmak için peşinen yapıyoruz
+        # Delta ve Dq hesaplamaları
         energies_only = [e[1] for e in win_data['labeled_energies']]
         delta_val = max(energies_only) - min(energies_only)
         dq_val = delta_val / 10.0 if delta_val != 0 else 1e-9
@@ -498,6 +498,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
             fig, ax = plt.subplots(figsize=(8, 5.0), facecolor='white')
             ax.set_facecolor('white')
             
+            min_e, max_e = min(energies_only), max(energies_only)
             span = max_e - min_e if max_e != min_e else 1.0
             offset = span * 0.25
             
