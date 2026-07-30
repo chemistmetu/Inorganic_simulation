@@ -491,7 +491,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
             elif orbital == 'dyz': return r'$d_{yz}$'
             return f"${orbital}$"
 
-        tab1, tab2, tab3 = st.tabs(["Energy Plot", "Orbital Population", "Energy Levels & Textbook Dq"])
+        tab1, tab2, tab3 = st.tabs(["Energy Plot", "Orbital Population", "Energy Levels"])
 
         with tab1:
             st.subheader("Orbital Energy Architecture")
