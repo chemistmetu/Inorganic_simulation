@@ -403,7 +403,7 @@ class AbInitioMinimizer:
 # ======================================================================
 # STREAMLIT APP INTEGRATION
 # ======================================================================
-st.set_page_config(page_title="Coordination Complex Engine", layout="wide")
+st.set_page_config(page_title="Coordination Complex Simulation", layout="wide")
 
 @st.cache_resource
 def get_quantum_engine():
@@ -412,11 +412,11 @@ def get_quantum_engine():
 engine = get_quantum_engine()
 minimizer = AbInitioMinimizer(engine)
 
-st.title("🧪 Ab-Initio Coordination Complex Engine")
+st.title("Semi-Emprical Coordination Complex Engine")
 st.markdown("Matrix mechanics & crystal field theory-based geometry optimization tool.")
 
 # Sidebar
-st.sidebar.header("Complex Parameters")
+st.sidebar.header("Selection of Metal and Ligand Combinations")
 selected_metal = st.sidebar.selectbox("Select Metal", list(METAL_DATA.keys()))
 selected_ligand = st.sidebar.selectbox("Select Ligand", list(LIGAND_DATA.keys()))
 
@@ -426,7 +426,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
         valid_results = {k: v for k, v in thermo_results.items() if v['stability_status'] == "STABLE"}
 
     if not valid_results:
-        st.error("System is thermodynamically UNSTABLE in all geometries (Dissociated or Positive Energy).")
+        st.error("System is thermodynamically unstable in all geometries (Dissociated or Positive Energy).")
     else:
         winner = min(valid_results, key=lambda k: valid_results[k]['total_energy'])
         win_data = thermo_results[winner]
@@ -442,7 +442,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
         tab1, tab2, tab3 = st.tabs(["Energy Plot", "Orbital Population", "Energy Levels Details"])
 
         with tab1:
-            st.subheader("Orbital Splitting Diagram")
+            st.subheader("d-Orbital Splitting Diagram")
             fig, ax = plt.subplots(figsize=(8, 5))
             
             energies = [e for _, e in win_data['labeled_energies']]
@@ -454,13 +454,13 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 pop = win_data['config'][idx]
                 color = 'royalblue' if pop > 0 else 'gray'
                 
-                # Orbital yatay çizgisi
+             
                 ax.hlines(e, idx - 0.35, idx + 0.35, colors=color, lw=4)
                 
-                # Orbital etiketi (çizginin altında)
+              
                 ax.text(idx, e - offset * 0.5, label, ha='center', va='top', fontsize=11, fontweight='bold', color='black')
                 
-                # Elektron simgeleri
+                
                 if pop == 1:
                     elec_str = "↑"
                 elif pop == 2:
