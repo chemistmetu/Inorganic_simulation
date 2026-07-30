@@ -405,7 +405,6 @@ class AbInitioMinimizer:
 # ======================================================================
 st.set_page_config(page_title="Coordination Complex Engine", layout="wide")
 
-# @st.cache_resource is CRITICAL here because we are using the heavy spi.nquad version
 @st.cache_resource
 def get_quantum_engine():
     return QuantumEngine()
@@ -413,21 +412,37 @@ def get_quantum_engine():
 engine = get_quantum_engine()
 minimizer = AbInitioMinimizer(engine)
 
-st.title("Semi-Emprical Coordination Complex Simulation")
-st.markdown("Matrix mechanics and crystal field theory-based semi-emprical geometry optimization tool.")
+st.title("Ab-Initio Coordination Complex Engine")
+st.markdown("Matrix mechanics & crystal field theory-based geometry optimization tool.")
 
 # Sidebar
-st.sidebar.header("Selection of Metal and Ligand")
+st.sidebar.header("Complex Parameters")
 selected_metal = st.sidebar.selectbox("Select Metal", list(METAL_DATA.keys()))
 selected_ligand = st.sidebar.selectbox("Select Ligand", list(LIGAND_DATA.keys()))
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(
-    
+    "💡 **Feedback & Corrections**<br>"
     "If you observe any wrong geometry, you can contact me at: "
     "[merthan.aytekin@metu.edu.tr](mailto:merthan.aytekin@metu.edu.tr)",
     unsafe_allow_html=True
 )
+
+def format_metal_name(m):
+    if m.endswith("3+"):
+        return f"{m[:-2]}$^{3+}$"
+    elif m.endswith("2+"):
+        return f"{m[:-2]}$^{2+}$"
+    return m
+
+def format_ligand_name(l):
+    if l.endswith("-"):
+        return f"{l[:-1]}$^{-}$"
+    elif l == "H2O":
+        return "H$_2$O"
+    elif l == "NH3":
+        return "NH$_3$"
+    return l
 
 if st.sidebar.button("Run Simulation", type="primary"):
     with st.spinner("Running quantum mechanical race across geometries..."):
@@ -435,7 +450,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
         valid_results = {k: v for k, v in thermo_results.items() if v['stability_status'] == "STABLE"}
 
     if not valid_results:
-        st.error("System is thermodynamically unstable in all geometries (Dissociated or Positive Energy).")
+        st.error("System is thermodynamically UNSTABLE in all geometries (Dissociated or Positive Energy).")
     else:
         winner = min(valid_results, key=lambda k: valid_results[k]['total_energy'])
         win_data = thermo_results[winner]
@@ -460,6 +475,14 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 else: return r'$e_g$'
             return f"${orbital}$"
 
+        def get_nice_orbital_name(orbital):
+            if orbital == 'dz2': return r'$d_{z^2}$'
+            elif orbital == 'dx2-y2': return r'$d_{x^2-y^2}$'
+            elif orbital == 'dxy': return r'$d_{xy}$'
+            elif orbital == 'dxz': return r'$d_{xz}$'
+            elif orbital == 'dyz': return r'$d_{yz}$'
+            return f"${orbital}$"
+
         tab1, tab2, tab3 = st.tabs(["Energy Plot", "Orbital Population", "Energy Levels Details"])
 
         with tab1:
@@ -475,12 +498,14 @@ if st.sidebar.button("Run Simulation", type="primary"):
             for idx, (label, e) in enumerate(win_data['labeled_energies']):
                 pop = win_data['config'][idx]
                 sym_label = get_symmetry_label(winner, label)
+                nice_orb = get_nice_orbital_name(label)
                 
                 line_color = '#2563eb' if pop > 0 else '#cbd5e1'
                 ax.plot([idx - 0.3, idx + 0.3], [e, e], color=line_color, lw=5, solid_capstyle='round')
                 
-                # Simetri etiketi alt simgeli (LaTeX) ve hemen altında atomik orbital adı
-                ax.text(idx, e - offset * 0.45, f"{sym_label}\n({label})", ha='center', va='top', fontsize=11, fontweight='bold', color='#1e293b')
+                # Render clean LaTeX labels on the plot
+                plot_label = f"{sym_label}\n({nice_orb})"
+                ax.text(idx, e - offset * 0.45, plot_label, ha='center', va='top', fontsize=11, fontweight='bold', color='#1e293b')
                 
                 if pop == 2:
                     elec_str = "↑↓"
@@ -506,16 +531,19 @@ if st.sidebar.button("Run Simulation", type="primary"):
             st.subheader("Electronic Properties & Ground State")
             m_d_electrons = METAL_DATA[selected_metal]["d_electrons"]
             unpaired_count = int(win_data['spin'] * 2)
+            metal_disp = format_metal_name(selected_metal)
+            ligand_disp = format_ligand_name(selected_ligand)
             
-            st.write(f"- **System:** {selected_metal} ($d^{m_d_electrons}$)")
-            st.write(f"- **Magnetism:** **{'PARAMAGNETIC' if win_data['spin'] > 0 else 'DIAMAGNETIC'}**")
-            st.write(f"- **Unpaired Electrons:** {unpaired_count}")
-            st.write(f"- **Pure LFSE:** {win_data['lfse']:+.4f} eV")
+            st.markdown(f"- **System:** {metal_disp} + {ligand_disp} ($d^{m_d_electrons}$)")
+            st.markdown(f"- **Magnetism:** **{'PARAMAGNETIC' if win_data['spin'] > 0 else 'DIAMAGNETIC'}**")
+            st.markdown(f"- **Unpaired Electrons:** {unpaired_count}")
+            st.markdown(f"- **Pure LFSE:** `{win_data['lfse']:+.4f} eV`")
             
             st.markdown("#### Orbital Configurations")
             for idx, (label, e) in enumerate(win_data['labeled_energies']):
                 pop = win_data['config'][idx]
                 sym_label = get_symmetry_label(winner, label)
+                nice_orb = get_nice_orbital_name(label)
                 
                 if pop == 2:
                     pop_str = "[ ↑↓ ]"
@@ -523,14 +551,15 @@ if st.sidebar.button("Run Simulation", type="primary"):
                     pop_str = "[  ↑  ]"
                 else:
                     pop_str = "[     ]"
-                st.code(f"{sym_label.upper():4s} ({label:7s}) : {pop_str}")
+                st.markdown(f"- **{sym_label}** ({nice_orb}) : `{pop_str}`")
 
         with tab3:
             st.subheader("Dynamically Centered Energies")
             for label, e in win_data['labeled_energies']:
                 sym_label = get_symmetry_label(winner, label)
-                st.code(f"{sym_label.upper():4s} ({label:7s}) = {e:+.4f} eV")
+                nice_orb = get_nice_orbital_name(label)
+                st.markdown(f"- **{sym_label}** ({nice_orb}) = `{e:+.4f} eV`")
             
             energies_only = [e[1] for e in win_data['labeled_energies']]
             delta_val = max(energies_only) - min(energies_only)
-            st.write(f"**Splitting Energy ($\Delta$):** {delta_val:.4f} eV")
+            st.markdown(f"**Splitting Energy ($\Delta$):** `{delta_val:.4f} eV`")
