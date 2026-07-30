@@ -414,8 +414,13 @@ minimizer = AbInitioMinimizer(engine)
 
 st.title("Semi-Emprical Coordination Complex Engine")
 st.markdown("Matrix mechanics & crystal field theory-based geometry optimization tool.")
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    "If you observe any wrong geometry, you can contact me at: "
+    "[merthan.aytekin@metu.edu.tr](mailto:merthan.aytekin@metu.edu.tr)",
+    unsafe_allow_html=True
+)
 
-# Sidebar
 st.sidebar.header("Selection of Metal and Ligand Combinations")
 selected_metal = st.sidebar.selectbox("Select Metal", list(METAL_DATA.keys()))
 selected_ligand = st.sidebar.selectbox("Select Ligand", list(LIGAND_DATA.keys()))
