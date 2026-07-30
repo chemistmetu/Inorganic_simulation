@@ -575,11 +575,6 @@ if st.sidebar.button("Run Simulation", type="primary"):
             st.markdown(f"**Total Splitting Energy ($\Delta$):** `{delta_val:.4f} eV`  ($10 Dq$)")
             st.markdown(f"**1 Dq Unit Equivalency:** `{dq_val:.4f} eV`")
             
-            if winner in ['Oh', 'Td']:
-                st.info("In purely symmetric fields like Oh and Td, energy shifts relative to the barycenter fall into perfect integer Dq ratios (-4, +6 or -6, +4), regardless of $\pi$-bonding effects. This perfectly mirrors undergraduate textbook teachings.")
-            else:
-                st.warning("In Square Planar ($D_{4h}$) geometry, degeneracy is severely broken. Energy levels do not map to simple integer Dq ratios. The simulation dynamically calculates these asymmetric splittings based on the ligand's $\pi$-character and steric profile.")
-            
             st.markdown("#### Real-to-Textbook Breakdown")
             for label, e in win_data['labeled_energies']:
                 sym_label = get_symmetry_label(winner, label)
