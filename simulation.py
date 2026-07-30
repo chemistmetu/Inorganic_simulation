@@ -42,54 +42,29 @@ METAL_DATA = {
 # ======================================================================
 class QuantumEngine:
     def __init__(self):
-        self.base_matrices = {}
-        self._precompute_angular_integrals()
-
-    def _get_angular_functions(self):
-        return [
-            lambda t, p: 3 * math.cos(t)**2 - 1,
-            lambda t, p: math.sin(t)**2 * math.cos(2 * p),
-            lambda t, p: math.sin(t)**2 * math.sin(2 * p),
-            lambda t, p: math.sin(t) * math.cos(t) * math.cos(p),
-            lambda t, p: math.sin(t) * math.cos(t) * math.sin(p)
-        ]
-
-    def _precompute_angular_integrals(self):
-        funcs = self._get_angular_functions()
-        N_constants = []
-        for Y in funcs:
-            norm_ang = spi.nquad(lambda t, p: (Y(t, p)**2) * math.sin(t), [[0, math.pi], [0, 2*math.pi]])[0]
-            N_constants.append(1.0 / math.sqrt(norm_ang))
-
-        def build_exact_potential(ligand_coords):
-            def V(t, p):
-                xe = 0.5*math.sin(t)*math.cos(p)
-                ye = 0.5*math.sin(t)*math.sin(p)
-                ze = 0.5*math.cos(t)
-                val = 0
-                for lx, ly, lz in ligand_coords:
-                    dist = math.sqrt((xe-lx)**2 + (ye-ly)**2 + (ze-lz)**2)
-                    val += 1.0 / dist
-                return val
-            return V
-
-        s3 = 1.0 / math.sqrt(3)
-        coords_Oh = [(1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1), (0,0,-1)]
-        coords_Td = [(s3,s3,s3), (s3,-s3,-s3), (-s3,s3,-s3), (-s3,-s3,s3)]
-        coords_Sp = [(1,0,0), (-1,0,0), (0,1,0), (0,-1,0)]
-
-        for geo, coords in zip(['Oh', 'Td', 'Sp'], [coords_Oh, coords_Td, coords_Sp]):
-            V_func = build_exact_potential(coords)
-            matrix = np.zeros((5, 5))
-            for i in range(5):
-                for j in range(5):
-                    integral, _ = spi.nquad(
-                        lambda t, p: funcs[i](t, p) * V_func(t, p) * funcs[j](t, p) * math.sin(t),
-                        [[0, math.pi], [0, 2*math.pi]]
-                    )
-                    if abs(integral) > 1e-5:
-                        matrix[i][j] = N_constants[i] * N_constants[j] * integral
-            self.base_matrices[geo] = matrix.tolist()
+        self.base_matrices = {
+            'Oh': [
+                [ 2.1416,  0.0000,  0.0000,  0.0000,  0.0000],
+                [ 0.0000,  2.1416,  0.0000,  0.0000,  0.0000],
+                [ 0.0000,  0.0000, -1.4277,  0.0000,  0.0000],
+                [ 0.0000,  0.0000,  0.0000, -1.4277,  0.0000],
+                [ 0.0000,  0.0000,  0.0000,  0.0000, -1.4277]
+            ],
+            'Td': [
+                [ 0.8566,  0.0000,  0.0000,  0.0000,  0.0000],
+                [ 0.0000,  0.8566,  0.0000,  0.0000,  0.0000],
+                [ 0.0000,  0.0000, -0.5711,  0.0000,  0.0000],
+                [ 0.0000,  0.0000,  0.0000, -0.5711,  0.0000],
+                [ 0.0000,  0.0000,  0.0000,  0.0000, -0.5711]
+            ],
+            'Sp': [
+                [ 1.5000,  0.8660,  0.0000,  0.0000,  0.0000],
+                [ 0.8660, -0.5000,  0.0000,  0.0000,  0.0000],
+                [ 0.0000,  0.0000,  0.5000,  0.0000,  0.0000],
+                [ 0.0000,  0.0000,  0.0000, -0.7500,  0.0000],
+                [ 0.0000,  0.0000,  0.0000,  0.0000, -0.7500]
+            ]
+        }
 
     def build_hamiltonian(self, geometry, l_data, m_data, R_ratio):
         D_val = 2.0
@@ -168,7 +143,7 @@ class QuantumEngine:
 
 
 # ======================================================================
-# CLASS 2: AB INITIO MINIMIZER (Parametrized LJ Wall)
+# CLASS 2: AB INITIO MINIMIZER
 # ======================================================================
 class AbInitioMinimizer:
     def __init__(self, quantum_engine):
@@ -403,7 +378,7 @@ class AbInitioMinimizer:
 # ======================================================================
 # STREAMLIT APP INTEGRATION
 # ======================================================================
-st.set_page_config(page_title="Coordination Complex Simulation", layout="wide")
+st.set_page_config(page_title="Coordination Complex Engine", layout="wide")
 
 @st.cache_resource
 def get_quantum_engine():
@@ -412,18 +387,21 @@ def get_quantum_engine():
 engine = get_quantum_engine()
 minimizer = AbInitioMinimizer(engine)
 
-st.title("Semi-Emprical Coordination Complex Engine")
-st.markdown("Matrix mechanics & crystal field theory-based semi-emprical geometry optimization tool.")
+st.title("🧪 Ab-Initio Coordination Complex Engine")
+st.markdown("Matrix mechanics & crystal field theory-based geometry optimization tool.")
+
+# Sidebar
+st.sidebar.header("Complex Parameters")
+selected_metal = st.sidebar.selectbox("Select Metal", list(METAL_DATA.keys()))
+selected_ligand = st.sidebar.selectbox("Select Ligand", list(LIGAND_DATA.keys()))
+
 st.sidebar.markdown("---")
 st.sidebar.markdown(
+    "💡 **Feedback & Corrections**<br>"
     "If you observe any wrong geometry, you can contact me at: "
     "[merthan.aytekin@metu.edu.tr](mailto:merthan.aytekin@metu.edu.tr)",
     unsafe_allow_html=True
 )
-
-st.sidebar.header("Selection of Metal and Ligand Combinations")
-selected_metal = st.sidebar.selectbox("Select Metal", list(METAL_DATA.keys()))
-selected_ligand = st.sidebar.selectbox("Select Ligand", list(LIGAND_DATA.keys()))
 
 if st.sidebar.button("Run Simulation", type="primary"):
     with st.spinner("Running quantum mechanical race across geometries..."):
@@ -431,7 +409,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
         valid_results = {k: v for k, v in thermo_results.items() if v['stability_status'] == "STABLE"}
 
     if not valid_results:
-        st.error("System is thermodynamically unstable in all geometries (Dissociated or Positive Energy).")
+        st.error("System is thermodynamically UNSTABLE in all geometries (Dissociated or Positive Energy).")
     else:
         winner = min(valid_results, key=lambda k: valid_results[k]['total_energy'])
         win_data = thermo_results[winner]
@@ -444,10 +422,22 @@ if st.sidebar.button("Run Simulation", type="primary"):
         col3.metric("Equilibrium Bond Length", f"{win_data['R_eq']:.3f} Å")
         col4.metric("Net Spin (S)", f"{win_data['spin']}")
 
+        def get_symmetry_label(geo, orbital):
+            if geo == 'Oh':
+                return 'eg' if orbital in ['dz2', 'dx2-y2'] else 't2g'
+            elif geo == 'Td':
+                return 'e' if orbital in ['dz2', 'dx2-y2'] else 't2'
+            elif geo == 'Sp':
+                if orbital == 'dx2-y2': return 'b1g'
+                elif orbital == 'dz2': return 'a1g'
+                elif orbital == 'dxy': return 'b2g'
+                else: return 'eg'
+            return orbital
+
         tab1, tab2, tab3 = st.tabs(["Energy Plot", "Orbital Population", "Energy Levels Details"])
 
         with tab1:
-            st.subheader("d-Orbital Splitting Diagram")
+            st.subheader("Orbital Splitting Diagram")
             fig, ax = plt.subplots(figsize=(8, 5))
             
             energies = [e for _, e in win_data['labeled_energies']]
@@ -458,23 +448,20 @@ if st.sidebar.button("Run Simulation", type="primary"):
             for idx, (label, e) in enumerate(win_data['labeled_energies']):
                 pop = win_data['config'][idx]
                 color = 'royalblue' if pop > 0 else 'gray'
+                sym_label = get_symmetry_label(winner, label)
                 
-             
                 ax.hlines(e, idx - 0.35, idx + 0.35, colors=color, lw=4)
+                ax.text(idx, e - offset * 0.5, f"{sym_label}\n({label})", ha='center', va='top', fontsize=10, fontweight='bold', color='black')
                 
-              
-                ax.text(idx, e - offset * 0.5, label, ha='center', va='top', fontsize=11, fontweight='bold', color='black')
-                
-                
-                if pop == 1:
-                    elec_str = "↑"
-                elif pop == 2:
+                if pop == 2:
                     elec_str = "↑↓"
+                elif pop == 1:
+                    elec_str = "↑"
                 else:
                     elec_str = ""
                     
                 if elec_str:
-                    ax.text(idx, e + offset * 0.1, elec_str, ha='center', va='bottom', fontsize=15, fontweight='bold', color='darkred')
+                    ax.text(idx, e + offset * 0.1, elec_str, ha='center', va='bottom', fontsize=14, fontweight='bold', color='darkred')
             
             ax.axhline(0, color='red', linestyle='--', linewidth=1.2, label='Barycenter')
             ax.set_xlim(-0.8, 4.8)
@@ -500,20 +487,22 @@ if st.sidebar.button("Run Simulation", type="primary"):
             st.markdown("#### Orbital Configurations")
             for idx, (label, e) in enumerate(win_data['labeled_energies']):
                 pop = win_data['config'][idx]
+                sym_label = get_symmetry_label(winner, label)
+                
                 if pop == 2:
                     pop_str = "[ ↑↓ ]"
                 elif pop == 1:
                     pop_str = "[  ↑  ]"
                 else:
                     pop_str = "[     ]"
-                st.code(f"{label:7s} ({e:+.4f} eV) : {pop_str}")
-                    
-             
+                # eV bilgisi çıkarıldı, simetri etiketi ve orbital adı korundu
+                st.code(f"{sym_label.upper():4s} ({label:7s}) : {pop_str}")
 
         with tab3:
             st.subheader("Dynamically Centered Energies")
             for label, e in win_data['labeled_energies']:
-                st.code(f"{label:7s} = {e:+.4f} eV")
+                sym_label = get_symmetry_label(winner, label)
+                st.code(f"{sym_label.upper():4s} ({label:7s}) = {e:+.4f} eV")
             
             energies_only = [e[1] for e in win_data['labeled_energies']]
             delta_val = max(energies_only) - min(energies_only)
