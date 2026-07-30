@@ -491,10 +491,10 @@ if st.sidebar.button("Run Simulation", type="primary"):
             elif orbital == 'dyz': return r'$d_{yz}$'
             return f"${orbital}$"
 
-        tab1, tab2, tab3 = st.tabs(["Energy Plot", "Orbital Population", "Energy Levels"])
+        tab1, tab2, tab3 = st.tabs(["Energy Plot", "Information", "Energy Levels"])
 
         with tab1:
-            st.subheader("Orbital Energy Architecture")
+            st.subheader("d-splitting")
             fig, ax = plt.subplots(figsize=(8, 5.0), facecolor='white')
             ax.set_facecolor('white')
             
@@ -552,7 +552,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
             st.markdown(f"- **Unpaired Electrons:** {unpaired_count}")
             st.markdown(f"- **Pure LFSE:** `{win_data['lfse']:+.4f} eV` &nbsp;&nbsp; *(Textbook equivalent: `{lfse_dq:+.2f} Dq`)*")
             
-            st.markdown("#### Information")
+            st.markdown("#### Orbital Configuration")
             for idx, (label, e) in enumerate(win_data['labeled_energies']):
                 pop = win_data['config'][idx]
                 sym_label = get_symmetry_label(winner, label)
@@ -570,12 +570,10 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 st.markdown(f"- **{sym_label}** ({nice_orb}) : `{pop_str}` &nbsp;&nbsp; *( `{dq_str}` )*")
 
         with tab3:
-            st.subheader("Dynamically Centered Energies")
             
             st.markdown(f"**Total Splitting Energy ($\Delta$):** `{delta_val:.4f} eV`  ($10 Dq$)")
             st.markdown(f"**1 Dq Unit Equivalency:** `{dq_val:.4f} eV`")
             
-            st.markdown("#### Real-to-Textbook Breakdown")
             for label, e in win_data['labeled_energies']:
                 sym_label = get_symmetry_label(winner, label)
                 nice_orb = get_nice_orbital_name(label)
