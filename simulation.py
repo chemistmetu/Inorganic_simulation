@@ -413,7 +413,7 @@ engine = get_quantum_engine()
 minimizer = AbInitioMinimizer(engine)
 
 st.title("Semi-Emprical Coordination Complex Engine")
-st.markdown("Matrix mechanics & crystal field theory-based geometry optimization tool.")
+st.markdown("Matrix mechanics & crystal field theory-based semi-emprical geometry optimization tool.")
 st.sidebar.markdown("---")
 st.sidebar.markdown(
     "If you observe any wrong geometry, you can contact me at: "
