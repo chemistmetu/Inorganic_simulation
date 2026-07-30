@@ -464,8 +464,8 @@ if st.sidebar.button("Run Simulation", type="primary"):
 
         with tab1:
             st.subheader("Orbital Energy Architecture")
-            fig, ax = plt.subplots(figsize=(8, 4.5), facecolor='none')
-            ax.set_facecolor('none')
+            fig, ax = plt.subplots(figsize=(8, 4.5), facecolor='white')
+            ax.set_facecolor('white')
             
             energies = [e for _, e in win_data['labeled_energies']]
             min_e, max_e = min(energies), max(energies)
