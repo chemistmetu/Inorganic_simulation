@@ -415,7 +415,6 @@ minimizer = AbInitioMinimizer(engine)
 st.title("Semi-Emprical Coordination Complex Simulation")
 st.markdown("Matrix mechanics and crystal field theory-based semi-emprical geometry optimization tool.")
 
-
 def unicode_metal_format(m):
     return m.replace("3+", "³⁺").replace("2+", "²⁺")
 
@@ -425,7 +424,6 @@ def unicode_ligand_format(l):
     if l.endswith("-"): return l[:-1] + "⁻"
     return l
 
-
 st.sidebar.header("Selection of Metal and Ligand Combinations")
 
 selected_metal = st.sidebar.selectbox("Select Metal", list(METAL_DATA.keys()), format_func=unicode_metal_format)
@@ -433,12 +431,10 @@ selected_ligand = st.sidebar.selectbox("Select Ligand", list(LIGAND_DATA.keys())
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(
-    
     "If you observe any wrong geometry, you can contact me at: "
     "[merthan.aytekin@metu.edu.tr](mailto:merthan.aytekin@metu.edu.tr)",
     unsafe_allow_html=True
 )
-
 
 def format_metal_name_latex(m):
     if m.endswith("3+"): return m[:-2] + r"$^{3+}$"
@@ -461,6 +457,11 @@ if st.sidebar.button("Run Simulation", type="primary"):
     else:
         winner = min(valid_results, key=lambda k: valid_results[k]['total_energy'])
         win_data = thermo_results[winner]
+
+        # Delta ve Dq hesaplamalarını tüm sekmelerde kullanmak için peşinen yapıyoruz
+        energies_only = [e[1] for e in win_data['labeled_energies']]
+        delta_val = max(energies_only) - min(energies_only)
+        dq_val = delta_val / 10.0 if delta_val != 0 else 1e-9
 
         st.success(f"Global minimum found at **{winner}** geometry!")
 
@@ -490,15 +491,13 @@ if st.sidebar.button("Run Simulation", type="primary"):
             elif orbital == 'dyz': return r'$d_{yz}$'
             return f"${orbital}$"
 
-        tab1, tab2, tab3 = st.tabs(["Energy Plot", "Orbital Population", "Energy Levels Details"])
+        tab1, tab2, tab3 = st.tabs(["Energy Plot", "Orbital Population", "Energy Levels & Textbook Dq"])
 
         with tab1:
             st.subheader("Orbital Energy Architecture")
-            fig, ax = plt.subplots(figsize=(8, 4.5), facecolor='white')
+            fig, ax = plt.subplots(figsize=(8, 5.0), facecolor='white')
             ax.set_facecolor('white')
             
-            energies = [e for _, e in win_data['labeled_energies']]
-            min_e, max_e = min(energies), max(energies)
             span = max_e - min_e if max_e != min_e else 1.0
             offset = span * 0.25
             
@@ -507,11 +506,17 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 sym_label = get_symmetry_label(winner, label)
                 nice_orb = get_nice_orbital_name(label)
                 
+                e_dq = e / dq_val
+                if abs(round(e_dq) - e_dq) < 0.05:
+                    dq_str = f"{round(e_dq):+d} Dq"
+                else:
+                    dq_str = f"{e_dq:+.1f} Dq"
+                
                 line_color = '#2563eb' if pop > 0 else '#cbd5e1'
                 ax.plot([idx - 0.3, idx + 0.3], [e, e], color=line_color, lw=5, solid_capstyle='round')
                 
-                plot_label = f"{sym_label}\n({nice_orb})"
-                ax.text(idx, e - offset * 0.45, plot_label, ha='center', va='top', fontsize=11, fontweight='bold', color='#1e293b')
+                plot_label = f"{sym_label}\n({nice_orb})\n[{dq_str}]"
+                ax.text(idx, e - offset * 0.35, plot_label, ha='center', va='top', fontsize=11, fontweight='bold', color='#1e293b')
                 
                 if pop == 2:
                     elec_str = "↑↓"
@@ -528,7 +533,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
             
             ax.axis('off')
             ax.set_xlim(-0.8, 5.0)
-            ax.set_ylim(min_e - offset * 1.3, max_e + offset * 1.4)
+            ax.set_ylim(min_e - offset * 1.5, max_e + offset * 1.4)
             
             fig.tight_layout()
             st.pyplot(fig, use_container_width=True)
@@ -539,11 +544,12 @@ if st.sidebar.button("Run Simulation", type="primary"):
             unpaired_count = int(win_data['spin'] * 2)
             metal_disp = format_metal_name_latex(selected_metal)
             ligand_disp = format_ligand_name_latex(selected_ligand)
+            lfse_dq = win_data['lfse'] / dq_val
             
             st.markdown(f"- **System:** {metal_disp} ($d^{m_d_electrons}$) + {ligand_disp}")
             st.markdown(f"- **Magnetism:** **{'PARAMAGNETIC' if win_data['spin'] > 0 else 'DIAMAGNETIC'}**")
             st.markdown(f"- **Unpaired Electrons:** {unpaired_count}")
-            st.markdown(f"- **Pure LFSE:** `{win_data['lfse']:+.4f} eV`")
+            st.markdown(f"- **Pure LFSE:** `{win_data['lfse']:+.4f} eV` &nbsp;&nbsp; *(Textbook equivalent: `{lfse_dq:+.2f} Dq`)*")
             
             st.markdown("#### Orbital Configurations")
             for idx, (label, e) in enumerate(win_data['labeled_energies']):
@@ -551,21 +557,37 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 sym_label = get_symmetry_label(winner, label)
                 nice_orb = get_nice_orbital_name(label)
                 
+                e_dq = e / dq_val
+                dq_str = f"{round(e_dq):+d} Dq" if abs(round(e_dq) - e_dq) < 0.05 else f"{e_dq:+.2f} Dq"
+                
                 if pop == 2:
                     pop_str = "[ ↑↓ ]"
                 elif pop == 1:
                     pop_str = "[  ↑  ]"
                 else:
                     pop_str = "[     ]"
-                st.markdown(f"- **{sym_label}** ({nice_orb}) : `{pop_str}`")
+                st.markdown(f"- **{sym_label}** ({nice_orb}) : `{pop_str}` &nbsp;&nbsp; *( `{dq_str}` )*")
 
         with tab3:
-            st.subheader("Dynamically Centered Energies")
+            st.subheader("Dynamically Centered Energies & Textbook (Dq) Mapping")
+            
+            st.markdown(f"**Total Splitting Energy ($\Delta$):** `{delta_val:.4f} eV`  ($10 Dq$)")
+            st.markdown(f"**1 Dq Unit Equivalency:** `{dq_val:.4f} eV`")
+            
+            if winner in ['Oh', 'Td']:
+                st.info("In purely symmetric fields like Oh and Td, energy shifts relative to the barycenter fall into perfect integer Dq ratios (-4, +6 or -6, +4), regardless of $\pi$-bonding effects. This perfectly mirrors undergraduate textbook teachings.")
+            else:
+                st.warning("In Square Planar ($D_{4h}$) geometry, degeneracy is severely broken. Energy levels do not map to simple integer Dq ratios. The simulation dynamically calculates these asymmetric splittings based on the ligand's $\pi$-character and steric profile.")
+            
+            st.markdown("#### Real-to-Textbook Breakdown")
             for label, e in win_data['labeled_energies']:
                 sym_label = get_symmetry_label(winner, label)
                 nice_orb = get_nice_orbital_name(label)
-                st.markdown(f"- **{sym_label}** ({nice_orb}) = `{e:+.4f} eV`")
-            
-            energies_only = [e[1] for e in win_data['labeled_energies']]
-            delta_val = max(energies_only) - min(energies_only)
-            st.markdown(f"**Splitting Energy ($\Delta$):** `{delta_val:.4f} eV`")
+                e_dq = e / dq_val
+                
+                if abs(round(e_dq) - e_dq) < 0.05:
+                    dq_str = f"{round(e_dq):+d} Dq"
+                else:
+                    dq_str = f"{e_dq:+.2f} Dq"
+                
+                st.markdown(f"- **{sym_label}** ({nice_orb}) = `{e:+.4f} eV` ➡️ **`{dq_str}`**")
