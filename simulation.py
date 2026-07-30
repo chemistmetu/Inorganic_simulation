@@ -430,14 +430,14 @@ st.sidebar.markdown(
 
 def format_metal_name(m):
     if m.endswith("3+"):
-        return f"{m[:-2]}$^{3+}$"
+        return m[:-2] + r"$^{3+}$"
     elif m.endswith("2+"):
-        return f"{m[:-2]}$^{2+}$"
+        return m[:-2] + r"$^{2+}$"
     return m
 
 def format_ligand_name(l):
     if l.endswith("-"):
-        return f"{l[:-1]}$^{-}$"
+        return l[:-1] + r"$^{-}$"
     elif l == "H2O":
         return "H$_2$O"
     elif l == "NH3":
