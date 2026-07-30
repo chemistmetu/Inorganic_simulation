@@ -450,15 +450,15 @@ if st.sidebar.button("Run Simulation", type="primary"):
 
         def get_symmetry_label(geo, orbital):
             if geo == 'Oh':
-                return 'eg' if orbital in ['dz2', 'dx2-y2'] else 't2g'
+                return r'$e_g$' if orbital in ['dz2', 'dx2-y2'] else r'$t_{2g}$'
             elif geo == 'Td':
-                return 'e' if orbital in ['dz2', 'dx2-y2'] else 't2'
+                return r'$e$' if orbital in ['dz2', 'dx2-y2'] else r'$t_2$'
             elif geo == 'Sp':
-                if orbital == 'dx2-y2': return 'b1g'
-                elif orbital == 'dz2': return 'a1g'
-                elif orbital == 'dxy': return 'b2g'
-                else: return 'eg'
-            return orbital
+                if orbital == 'dx2-y2': return r'$b_{1g}$'
+                elif orbital == 'dz2': return r'$a_{1g}$'
+                elif orbital == 'dxy': return r'$b_{2g}$'
+                else: return r'$e_g$'
+            return f"${orbital}$"
 
         tab1, tab2, tab3 = st.tabs(["Energy Plot", "Orbital Population", "Energy Levels Details"])
 
@@ -476,10 +476,10 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 pop = win_data['config'][idx]
                 sym_label = get_symmetry_label(winner, label)
                 
-                line_color = 'royalblue' if pop > 0 else 'gray'
-        
+                line_color = '#2563eb' if pop > 0 else '#cbd5e1'
                 ax.plot([idx - 0.3, idx + 0.3], [e, e], color=line_color, lw=5, solid_capstyle='round')
                 
+                # Simetri etiketi alt simgeli (LaTeX) ve hemen altında atomik orbital adı
                 ax.text(idx, e - offset * 0.45, f"{sym_label}\n({label})", ha='center', va='top', fontsize=11, fontweight='bold', color='#1e293b')
                 
                 if pop == 2:
@@ -493,7 +493,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
                     ax.text(idx, e + offset * 0.15, elec_str, ha='center', va='bottom', fontsize=16, fontweight='bold', color='#dc2626')
             
             ax.axhline(0, color='#94a3b8', linestyle='--', linewidth=1.5, alpha=0.7)
-            ax.text(4.1, 0, 'Barycenter', color='royalblue', fontsize=9, va='center', fontweight='semibold')
+            ax.text(4.1, 0, 'Barycenter', color='#64748b', fontsize=9, va='center', fontweight='semibold')
             
             ax.axis('off')
             ax.set_xlim(-0.8, 5.0)
