@@ -425,21 +425,21 @@ def unicode_ligand_format(l):
     if l.endswith("-"): return l[:-1] + "⁻"
     return l
 
-# Sidebar
-st.sidebar.header("Complex Parameters")
-# format_func kullanarak arka plandaki hesaplamayı bozmadan sadece menü görünümünü değiştiriyoruz.
+
+st.sidebar.header("Selection of Metal and Ligand Combinations")
+
 selected_metal = st.sidebar.selectbox("Select Metal", list(METAL_DATA.keys()), format_func=unicode_metal_format)
 selected_ligand = st.sidebar.selectbox("Select Ligand", list(LIGAND_DATA.keys()), format_func=unicode_ligand_format)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(
-    "💡 **Feedback & Corrections**<br>"
+    
     "If you observe any wrong geometry, you can contact me at: "
     "[merthan.aytekin@metu.edu.tr](mailto:merthan.aytekin@metu.edu.tr)",
     unsafe_allow_html=True
 )
 
-# LaTeX tabanlı, sonuçları Markdown içinde şık yazdırmak için fonksiyonlar
+
 def format_metal_name_latex(m):
     if m.endswith("3+"): return m[:-2] + r"$^{3+}$"
     elif m.endswith("2+"): return m[:-2] + r"$^{2+}$"
@@ -457,7 +457,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
         valid_results = {k: v for k, v in thermo_results.items() if v['stability_status'] == "STABLE"}
 
     if not valid_results:
-        st.error("System is thermodynamically UNSTABLE in all geometries (Dissociated or Positive Energy).")
+        st.error("System is thermodynamically unstable in all geometries (Dissociated or Positive Energy).")
     else:
         winner = min(valid_results, key=lambda k: valid_results[k]['total_energy'])
         win_data = thermo_results[winner]
@@ -540,7 +540,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
             metal_disp = format_metal_name_latex(selected_metal)
             ligand_disp = format_ligand_name_latex(selected_ligand)
             
-            st.markdown(f"- **System:** {metal_disp} + {ligand_disp} ($d^{m_d_electrons}$)")
+            st.markdown(f"- **System:** {metal_disp} ($d^{m_d_electrons}$)") + {ligand_disp}
             st.markdown(f"- **Magnetism:** **{'PARAMAGNETIC' if win_data['spin'] > 0 else 'DIAMAGNETIC'}**")
             st.markdown(f"- **Unpaired Electrons:** {unpaired_count}")
             st.markdown(f"- **Pure LFSE:** `{win_data['lfse']:+.4f} eV`")
