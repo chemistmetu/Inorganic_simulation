@@ -387,7 +387,7 @@ def get_quantum_engine():
 engine = get_quantum_engine()
 minimizer = AbInitioMinimizer(engine)
 
-st.title("Semi-Emprical Coordination Complex Engine")
+st.title("Semi-Emperical Coordination Complex Engine")
 st.markdown("Matrix mechanics and crystal field theory-based semi-emprical geometry optimization tool.")
 
 # Sidebar
@@ -449,14 +449,11 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 pop = win_data['config'][idx]
                 sym_label = get_symmetry_label(winner, label)
                 
-                # Modern yuvarlatılmış ve şık çizgi renkleri
                 line_color = '#2563eb' if pop > 0 else '#cbd5e1'
                 ax.hlines(e, idx - 0.3, idx + 0.3, colors=line_color, lw=5, solid_capstyle='round')
                 
-                # Simetri ve orbital etiketleri
                 ax.text(idx, e - offset * 0.45, f"{sym_label}\n({label})", ha='center', va='top', fontsize=11, fontweight='bold', color='#1e293b')
                 
-                # Elektron spin okları
                 if pop == 2:
                     elec_str = "↑↓"
                 elif pop == 1:
@@ -467,11 +464,9 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 if elec_str:
                     ax.text(idx, e + offset * 0.15, elec_str, ha='center', va='bottom', fontsize=16, fontweight='bold', color='#dc2626')
             
-            # Barycenter çizgisi
             ax.axhline(0, color='#94a3b8', linestyle='--', linewidth=1.5, alpha=0.7)
             ax.text(4.1, 0, 'Barycenter', color='#64748b', fontsize=9, va='center', fontweight='semibold')
             
-            # Tüm eksen çerçevelerini ve çizgilerini tamamen yok et (Grafik değil tasarım gibi dursun)
             ax.axis('off')
             ax.set_xlim(-0.8, 5.0)
             ax.set_ylim(min_e - offset * 1.3, max_e + offset * 1.4)
@@ -500,7 +495,6 @@ if st.sidebar.button("Run Simulation", type="primary"):
                     pop_str = "[  ↑  ]"
                 else:
                     pop_str = "[     ]"
-                # eV bilgisi çıkarıldı, simetri etiketi ve orbital adı korundu
                 st.code(f"{sym_label.upper():4s} ({label:7s}) : {pop_str}")
 
         with tab3:
