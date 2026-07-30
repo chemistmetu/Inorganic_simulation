@@ -570,7 +570,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 st.markdown(f"- **{sym_label}** ({nice_orb}) : `{pop_str}` &nbsp;&nbsp; *( `{dq_str}` )*")
 
         with tab3:
-            st.subheader("Dynamically Centered Energies & Textbook (Dq) Mapping")
+            st.subheader("Dynamically Centered Energies")
             
             st.markdown(f"**Total Splitting Energy ($\Delta$):** `{delta_val:.4f} eV`  ($10 Dq$)")
             st.markdown(f"**1 Dq Unit Equivalency:** `{dq_val:.4f} eV`")
@@ -591,4 +591,4 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 else:
                     dq_str = f"{e_dq:+.2f} Dq"
                 
-                st.markdown(f"- **{sym_label}** ({nice_orb}) = `{e:+.4f} eV` ➡️ **`{dq_str}`**")
+                st.markdown(f"- **{sym_label}** ({nice_orb}) = `{e:+.4f} eV` **`{dq_str}`**")
