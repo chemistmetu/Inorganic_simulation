@@ -436,22 +436,27 @@ if st.sidebar.button("Run Simulation", type="primary"):
         tab1, tab2, tab3 = st.tabs(["Energy Plot", "Orbital Population", "Energy Levels Details"])
 
         with tab1:
-            st.subheader("Orbital Splitting Diagram")
-            fig, ax = plt.subplots(figsize=(8, 5))
+            st.subheader("Orbital Energy Architecture")
+            fig, ax = plt.subplots(figsize=(8, 4.5), facecolor='none')
+            ax.set_facecolor('none')
             
             energies = [e for _, e in win_data['labeled_energies']]
             min_e, max_e = min(energies), max(energies)
             span = max_e - min_e if max_e != min_e else 1.0
-            offset = span * 0.20
+            offset = span * 0.25
             
             for idx, (label, e) in enumerate(win_data['labeled_energies']):
                 pop = win_data['config'][idx]
-                color = 'royalblue' if pop > 0 else 'gray'
                 sym_label = get_symmetry_label(winner, label)
                 
-                ax.hlines(e, idx - 0.35, idx + 0.35, colors=color, lw=4)
-                ax.text(idx, e - offset * 0.5, f"{sym_label}\n({label})", ha='center', va='top', fontsize=10, fontweight='bold', color='black')
+                # Modern yuvarlatılmış ve şık çizgi renkleri
+                line_color = '#2563eb' if pop > 0 else '#cbd5e1'
+                ax.hlines(e, idx - 0.3, idx + 0.3, colors=line_color, lw=5, solid_capstyle='round')
                 
+                # Simetri ve orbital etiketleri
+                ax.text(idx, e - offset * 0.45, f"{sym_label}\n({label})", ha='center', va='top', fontsize=11, fontweight='bold', color='#1e293b')
+                
+                # Elektron spin okları
                 if pop == 2:
                     elec_str = "↑↓"
                 elif pop == 1:
@@ -460,18 +465,19 @@ if st.sidebar.button("Run Simulation", type="primary"):
                     elec_str = ""
                     
                 if elec_str:
-                    ax.text(idx, e + offset * 0.1, elec_str, ha='center', va='bottom', fontsize=14, fontweight='bold', color='darkred')
+                    ax.text(idx, e + offset * 0.15, elec_str, ha='center', va='bottom', fontsize=16, fontweight='bold', color='#dc2626')
             
-            ax.axhline(0, color='red', linestyle='--', linewidth=1.2, label='Barycenter')
-            ax.set_xlim(-0.8, 4.8)
-            ax.set_ylim(min_e - offset * 1.2, max_e + offset * 1.2)
-            ax.set_xticks([])
-            ax.set_ylabel("Energy relative to Barycenter (eV)", fontsize=12)
-            ax.set_title(f"d-Orbital Energy Diagram for {selected_metal} + {selected_ligand} ({winner})", fontsize=13)
-            ax.legend(loc='upper right')
-            ax.grid(axis='y', linestyle=':', alpha=0.5)
+            # Barycenter çizgisi
+            ax.axhline(0, color='#94a3b8', linestyle='--', linewidth=1.5, alpha=0.7)
+            ax.text(4.1, 0, 'Barycenter', color='#64748b', fontsize=9, va='center', fontweight='semibold')
             
-            st.pyplot(fig)
+            # Tüm eksen çerçevelerini ve çizgilerini tamamen yok et (Grafik değil tasarım gibi dursun)
+            ax.axis('off')
+            ax.set_xlim(-0.8, 5.0)
+            ax.set_ylim(min_e - offset * 1.3, max_e + offset * 1.4)
+            
+            fig.tight_layout()
+            st.pyplot(fig, use_container_width=True)
 
         with tab2:
             st.subheader("Electronic Properties & Ground State")
