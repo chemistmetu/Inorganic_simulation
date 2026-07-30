@@ -500,8 +500,14 @@ if st.sidebar.button("Run Simulation", type="primary"):
             st.markdown("#### Orbital Configurations")
             for idx, (label, e) in enumerate(win_data['labeled_energies']):
                 pop = win_data['config'][idx]
-                pop_str = '🟢 ' * pop if pop > 0 else '⚪ empty'
-                st.write(f"**{label}** : {pop_str}")
+                if pop == 2:
+                    pop_str = "[ ↑↓ ]"
+                elif pop == 1:
+                    pop_str = "[  ↑  ]"
+                else:
+                    pop_str = "[     ]"
+                    
+             
 
         with tab3:
             st.subheader("Dynamically Centered Energies")
