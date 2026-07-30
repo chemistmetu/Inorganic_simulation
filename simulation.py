@@ -412,10 +412,10 @@ def get_quantum_engine():
 engine = get_quantum_engine()
 minimizer = AbInitioMinimizer(engine)
 
-st.title("Ab-Initio Coordination Complex Engine")
-st.markdown("Matrix mechanics & crystal field theory-based geometry optimization tool.")
+st.title("Semi-Emprical Coordination Complex Simulation")
+st.markdown("Matrix mechanics and crystal field theory-based semi-emprical geometry optimization tool.")
 
-# Menüler (selectbox) için Unicode çevirici fonksiyonlar
+
 def unicode_metal_format(m):
     return m.replace("3+", "³⁺").replace("2+", "²⁺")
 
