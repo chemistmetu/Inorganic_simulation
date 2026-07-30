@@ -540,7 +540,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
             metal_disp = format_metal_name_latex(selected_metal)
             ligand_disp = format_ligand_name_latex(selected_ligand)
             
-            st.markdown(f"- **System:** {metal_disp} ($d^{m_d_electrons}$)" + {ligand_disp})
+            st.markdown(f"- **System:** {metal_disp} ($d^{m_d_electrons}$) + {ligand_disp}")
             st.markdown(f"- **Magnetism:** **{'PARAMAGNETIC' if win_data['spin'] > 0 else 'DIAMAGNETIC'}**")
             st.markdown(f"- **Unpaired Electrons:** {unpaired_count}")
             st.markdown(f"- **Pure LFSE:** `{win_data['lfse']:+.4f} eV`")
