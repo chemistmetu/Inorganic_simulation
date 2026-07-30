@@ -2,6 +2,7 @@ import math
 import time
 import numpy as np
 import itertools
+import scipy.integrate as spi
 import scipy.optimize as opt
 import streamlit as st
 import matplotlib.pyplot as plt
@@ -37,33 +38,58 @@ METAL_DATA = {
 }
 
 # ======================================================================
-# CLASS 1: RIGOROUS QUANTUM ENGINE (Stable Hardcoded Matrices)
+# CLASS 1: RIGOROUS QUANTUM ENGINE
 # ======================================================================
 class QuantumEngine:
     def __init__(self):
-        self.base_matrices = {
-            'Oh': [
-                [ 2.1416,  0.0000,  0.0000,  0.0000,  0.0000],
-                [ 0.0000,  2.1416,  0.0000,  0.0000,  0.0000],
-                [ 0.0000,  0.0000, -1.4277,  0.0000,  0.0000],
-                [ 0.0000,  0.0000,  0.0000, -1.4277,  0.0000],
-                [ 0.0000,  0.0000,  0.0000,  0.0000, -1.4277]
-            ],
-            'Td': [
-                [ 0.8566,  0.0000,  0.0000,  0.0000,  0.0000],
-                [ 0.0000,  0.8566,  0.0000,  0.0000,  0.0000],
-                [ 0.0000,  0.0000, -0.5711,  0.0000,  0.0000],
-                [ 0.0000,  0.0000,  0.0000, -0.5711,  0.0000],
-                [ 0.0000,  0.0000,  0.0000,  0.0000, -0.5711]
-            ],
-            'Sp': [
-                [ 1.5000,  0.8660,  0.0000,  0.0000,  0.0000],
-                [ 0.8660, -0.5000,  0.0000,  0.0000,  0.0000],
-                [ 0.0000,  0.0000,  0.5000,  0.0000,  0.0000],
-                [ 0.0000,  0.0000,  0.0000, -0.7500,  0.0000],
-                [ 0.0000,  0.0000,  0.0000,  0.0000, -0.7500]
-            ]
-        }
+        self.base_matrices = {}
+        self._precompute_angular_integrals()
+
+    def _get_angular_functions(self):
+        return [
+            lambda t, p: 3 * math.cos(t)**2 - 1,
+            lambda t, p: math.sin(t)**2 * math.cos(2 * p),
+            lambda t, p: math.sin(t)**2 * math.sin(2 * p),
+            lambda t, p: math.sin(t) * math.cos(t) * math.cos(p),
+            lambda t, p: math.sin(t) * math.cos(t) * math.sin(p)
+        ]
+
+    def _precompute_angular_integrals(self):
+        funcs = self._get_angular_functions()
+        N_constants = []
+        for Y in funcs:
+            norm_ang = spi.nquad(lambda t, p: (Y(t, p)**2) * math.sin(t), [[0, math.pi], [0, 2*math.pi]])[0]
+            N_constants.append(1.0 / math.sqrt(norm_ang))
+
+        def build_exact_potential(ligand_coords):
+            def V(t, p):
+                xe = 0.5*math.sin(t)*math.cos(p)
+                ye = 0.5*math.sin(t)*math.sin(p)
+                ze = 0.5*math.cos(t)
+                val = 0
+                for lx, ly, lz in ligand_coords:
+                    dist = math.sqrt((xe-lx)**2 + (ye-ly)**2 + (ze-lz)**2)
+                    val += 1.0 / dist
+                return val
+            return V
+
+        s3 = 1.0 / math.sqrt(3)
+        coords_Oh = [(1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1), (0,0,-1)]
+        coords_Td = [(s3,s3,s3), (s3,-s3,-s3), (-s3,s3,-s3), (-s3,-s3,s3)]
+        coords_Sp = [(1,0,0), (-1,0,0), (0,1,0), (0,-1,0)]
+
+        for geo, coords in zip(['Oh', 'Td', 'Sp'], [coords_Oh, coords_Td, coords_Sp]):
+            V_func = build_exact_potential(coords)
+            matrix = np.zeros((5, 5))
+            for i in range(5):
+                for j in range(5):
+                    integral, _ = spi.nquad(
+                        lambda t, p: funcs[i](t, p) * V_func(t, p) * funcs[j](t, p) * math.sin(t),
+                        [[0, math.pi], [0, 2*math.pi]]
+                    )
+                    if abs(integral) > 1e-5:
+                        matrix[i][j] = N_constants[i] * N_constants[j] * integral
+            self.base_matrices[geo] = matrix.tolist()
 
     def build_hamiltonian(self, geometry, l_data, m_data, R_ratio):
         D_val = 2.0
@@ -379,6 +405,7 @@ class AbInitioMinimizer:
 # ======================================================================
 st.set_page_config(page_title="Coordination Complex Engine", layout="wide")
 
+# @st.cache_resource is CRITICAL here because we are using the heavy spi.nquad version
 @st.cache_resource
 def get_quantum_engine():
     return QuantumEngine()
@@ -386,7 +413,7 @@ def get_quantum_engine():
 engine = get_quantum_engine()
 minimizer = AbInitioMinimizer(engine)
 
-st.title("Semi-Empirical Coordination Complex Engine")
+st.title("Ab-Initio Coordination Complex Engine")
 st.markdown("Matrix mechanics & crystal field theory-based geometry optimization tool.")
 
 # Sidebar
@@ -450,6 +477,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 sym_label = get_symmetry_label(winner, label)
                 
                 line_color = '#2563eb' if pop > 0 else '#cbd5e1'
+                # Use ax.plot to draw rounded lines without the hlines solid_capstyle AttributeError
                 ax.plot([idx - 0.3, idx + 0.3], [e, e], color=line_color, lw=5, solid_capstyle='round')
                 
                 ax.text(idx, e - offset * 0.45, f"{sym_label}\n({label})", ha='center', va='top', fontsize=11, fontweight='bold', color='#1e293b')
