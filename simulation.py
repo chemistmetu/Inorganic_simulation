@@ -413,17 +413,17 @@ def get_quantum_engine():
 engine = get_quantum_engine()
 minimizer = AbInitioMinimizer(engine)
 
-st.title("Ab-Initio Coordination Complex Engine")
-st.markdown("Matrix mechanics & crystal field theory-based geometry optimization tool.")
+st.title("Semi-Emprical Coordination Complex Simulation")
+st.markdown("Matrix mechanics and crystal field theory-based semi-emprical geometry optimization tool.")
 
 # Sidebar
-st.sidebar.header("Complex Parameters")
+st.sidebar.header("Selection of Metal and Ligand")
 selected_metal = st.sidebar.selectbox("Select Metal", list(METAL_DATA.keys()))
 selected_ligand = st.sidebar.selectbox("Select Ligand", list(LIGAND_DATA.keys()))
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(
-    "💡 **Feedback & Corrections**<br>"
+    
     "If you observe any wrong geometry, you can contact me at: "
     "[merthan.aytekin@metu.edu.tr](mailto:merthan.aytekin@metu.edu.tr)",
     unsafe_allow_html=True
@@ -435,7 +435,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
         valid_results = {k: v for k, v in thermo_results.items() if v['stability_status'] == "STABLE"}
 
     if not valid_results:
-        st.error("System is thermodynamically UNSTABLE in all geometries (Dissociated or Positive Energy).")
+        st.error("System is thermodynamically unstable in all geometries (Dissociated or Positive Energy).")
     else:
         winner = min(valid_results, key=lambda k: valid_results[k]['total_energy'])
         win_data = thermo_results[winner]
@@ -476,8 +476,8 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 pop = win_data['config'][idx]
                 sym_label = get_symmetry_label(winner, label)
                 
-                line_color = '#2563eb' if pop > 0 else '#cbd5e1'
-                # Use ax.plot to draw rounded lines without the hlines solid_capstyle AttributeError
+                line_color = 'royalblue' if pop > 0 else 'gray'
+        
                 ax.plot([idx - 0.3, idx + 0.3], [e, e], color=line_color, lw=5, solid_capstyle='round')
                 
                 ax.text(idx, e - offset * 0.45, f"{sym_label}\n({label})", ha='center', va='top', fontsize=11, fontweight='bold', color='#1e293b')
@@ -493,7 +493,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
                     ax.text(idx, e + offset * 0.15, elec_str, ha='center', va='bottom', fontsize=16, fontweight='bold', color='#dc2626')
             
             ax.axhline(0, color='#94a3b8', linestyle='--', linewidth=1.5, alpha=0.7)
-            ax.text(4.1, 0, 'Barycenter', color='#64748b', fontsize=9, va='center', fontweight='semibold')
+            ax.text(4.1, 0, 'Barycenter', color='royalblue', fontsize=9, va='center', fontweight='semibold')
             
             ax.axis('off')
             ax.set_xlim(-0.8, 5.0)
