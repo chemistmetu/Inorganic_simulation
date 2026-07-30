@@ -450,7 +450,8 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 sym_label = get_symmetry_label(winner, label)
                 
                 line_color = '#2563eb' if pop > 0 else '#cbd5e1'
-                ax.hlines(e, idx - 0.3, idx + 0.3, colors=line_color, lw=5, solid_capstyle='round')
+                # hlines yerine plot kullanılarak solid_capstyle uyumluluğu sağlandı
+                ax.plot([idx - 0.3, idx + 0.3], [e, e], color=line_color, lw=5, solid_capstyle='round')
                 
                 ax.text(idx, e - offset * 0.45, f"{sym_label}\n({label})", ha='center', va='top', fontsize=11, fontweight='bold', color='#1e293b')
                 
