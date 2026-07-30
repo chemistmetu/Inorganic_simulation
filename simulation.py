@@ -552,7 +552,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
             st.markdown(f"- **Unpaired Electrons:** {unpaired_count}")
             st.markdown(f"- **Pure LFSE:** `{win_data['lfse']:+.4f} eV` &nbsp;&nbsp; *(Textbook equivalent: `{lfse_dq:+.2f} Dq`)*")
             
-            st.markdown("#### Orbital Configurations")
+            st.markdown("#### Information")
             for idx, (label, e) in enumerate(win_data['labeled_energies']):
                 pop = win_data['config'][idx]
                 sym_label = get_symmetry_label(winner, label)
