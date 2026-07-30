@@ -506,6 +506,7 @@ if st.sidebar.button("Run Simulation", type="primary"):
                     pop_str = "[  ↑  ]"
                 else:
                     pop_str = "[     ]"
+                st.code(f"{label:7s} ({e:+.4f} eV) : {pop_str}")
                     
              
 
