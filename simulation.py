@@ -415,10 +415,21 @@ minimizer = AbInitioMinimizer(engine)
 st.title("Ab-Initio Coordination Complex Engine")
 st.markdown("Matrix mechanics & crystal field theory-based geometry optimization tool.")
 
+# Menüler (selectbox) için Unicode çevirici fonksiyonlar
+def unicode_metal_format(m):
+    return m.replace("3+", "³⁺").replace("2+", "²⁺")
+
+def unicode_ligand_format(l):
+    if l == "H2O": return "H₂O"
+    if l == "NH3": return "NH₃"
+    if l.endswith("-"): return l[:-1] + "⁻"
+    return l
+
 # Sidebar
 st.sidebar.header("Complex Parameters")
-selected_metal = st.sidebar.selectbox("Select Metal", list(METAL_DATA.keys()))
-selected_ligand = st.sidebar.selectbox("Select Ligand", list(LIGAND_DATA.keys()))
+# format_func kullanarak arka plandaki hesaplamayı bozmadan sadece menü görünümünü değiştiriyoruz.
+selected_metal = st.sidebar.selectbox("Select Metal", list(METAL_DATA.keys()), format_func=unicode_metal_format)
+selected_ligand = st.sidebar.selectbox("Select Ligand", list(LIGAND_DATA.keys()), format_func=unicode_ligand_format)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(
@@ -428,20 +439,16 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-def format_metal_name(m):
-    if m.endswith("3+"):
-        return m[:-2] + r"$^{3+}$"
-    elif m.endswith("2+"):
-        return m[:-2] + r"$^{2+}$"
+# LaTeX tabanlı, sonuçları Markdown içinde şık yazdırmak için fonksiyonlar
+def format_metal_name_latex(m):
+    if m.endswith("3+"): return m[:-2] + r"$^{3+}$"
+    elif m.endswith("2+"): return m[:-2] + r"$^{2+}$"
     return m
 
-def format_ligand_name(l):
-    if l.endswith("-"):
-        return l[:-1] + r"$^{-}$"
-    elif l == "H2O":
-        return "H$_2$O"
-    elif l == "NH3":
-        return "NH$_3$"
+def format_ligand_name_latex(l):
+    if l.endswith("-"): return l[:-1] + r"$^{-}$"
+    elif l == "H2O": return "H$_2$O"
+    elif l == "NH3": return "NH$_3$"
     return l
 
 if st.sidebar.button("Run Simulation", type="primary"):
@@ -503,7 +510,6 @@ if st.sidebar.button("Run Simulation", type="primary"):
                 line_color = '#2563eb' if pop > 0 else '#cbd5e1'
                 ax.plot([idx - 0.3, idx + 0.3], [e, e], color=line_color, lw=5, solid_capstyle='round')
                 
-                # Render clean LaTeX labels on the plot
                 plot_label = f"{sym_label}\n({nice_orb})"
                 ax.text(idx, e - offset * 0.45, plot_label, ha='center', va='top', fontsize=11, fontweight='bold', color='#1e293b')
                 
@@ -531,8 +537,8 @@ if st.sidebar.button("Run Simulation", type="primary"):
             st.subheader("Electronic Properties & Ground State")
             m_d_electrons = METAL_DATA[selected_metal]["d_electrons"]
             unpaired_count = int(win_data['spin'] * 2)
-            metal_disp = format_metal_name(selected_metal)
-            ligand_disp = format_ligand_name(selected_ligand)
+            metal_disp = format_metal_name_latex(selected_metal)
+            ligand_disp = format_ligand_name_latex(selected_ligand)
             
             st.markdown(f"- **System:** {metal_disp} + {ligand_disp} ($d^{m_d_electrons}$)")
             st.markdown(f"- **Magnetism:** **{'PARAMAGNETIC' if win_data['spin'] > 0 else 'DIAMAGNETIC'}**")
